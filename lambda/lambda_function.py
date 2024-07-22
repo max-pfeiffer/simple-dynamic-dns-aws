@@ -5,11 +5,17 @@ from typing import Optional
 import boto3
 import requests
 from botocore.exceptions import ClientError
+from botocore.client import BaseClient
 
 SECRETS_EXTENSION_HTTP_PORT: str = "2773"
 ROUTE_53_ZONE_ID: str = "?"
 ROUTE_53_RECORD_TYPE: str = "A"
 ROUTE_53_RECORD_TTL: str = "?"
+
+
+def route_53_client() -> BaseClient:
+    client = boto3.client("route53")
+    return client
 
 
 def get_secret(secret_id: str) -> str:
@@ -24,8 +30,8 @@ def get_secret(secret_id: str) -> str:
 
 
 def get_dns_record(domain: str) -> Optional[str]:
-    route53_client = boto3.client("route53")
-    current_route53_record_set = route53_client.list_resource_record_sets(
+    client = route_53_client()
+    current_route53_record_set = client.list_resource_record_sets(
         HostedZoneId=ROUTE_53_ZONE_ID,
         StartRecordName=domain,
         StartRecordType=ROUTE_53_RECORD_TYPE,
@@ -40,8 +46,8 @@ def get_dns_record(domain: str) -> Optional[str]:
 
 
 def set_dns_record(domain: str, ip: str):
-    route53_client = boto3.client("route53")
-    route53_client.change_resource_record_sets(
+    client = route_53_client()
+    client.change_resource_record_sets(
         HostedZoneId=ROUTE_53_ZONE_ID,
         ChangeBatch={
             "Changes": [
