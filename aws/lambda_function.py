@@ -8,9 +8,9 @@ from botocore.exceptions import ClientError
 from botocore.client import BaseClient
 
 SECRETS_EXTENSION_HTTP_PORT: str = "2773"
-ROUTE_53_ZONE_ID: str = "?"
+ROUTE_53_HOSTED_ZONE_ID: str = os.environ.get("ROUTE_53_HOSTED_ZONE_ID")
 ROUTE_53_RECORD_TYPE: str = "A"
-ROUTE_53_RECORD_TTL: str = "?"
+ROUTE_53_RECORD_TTL: int = 300
 
 
 def route_53_client() -> BaseClient:
@@ -19,6 +19,13 @@ def route_53_client() -> BaseClient:
 
 
 def get_secret(secret_id: str) -> str:
+    """Retrieve cached secret via Lambda extension.
+
+    See: https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieving-secrets_lambda.html
+
+    :param secret_id:
+    :return:
+    """
     headers = {"X-Aws-Parameters-Secrets-Token": os.environ.get("AWS_SESSION_TOKEN")}
     secrets_extension_endpoint = f"http://localhost:{SECRETS_EXTENSION_HTTP_PORT}/secretsmanager/get?secretId={secret_id}"
 
@@ -30,9 +37,16 @@ def get_secret(secret_id: str) -> str:
 
 
 def get_dns_record(domain: str) -> Optional[str]:
+    """Retrieve the DNS record for the given domain if it exists.
+
+    See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/route53/client/list_resource_record_sets.html
+
+    :param domain:
+    :return:
+    """
     client = route_53_client()
     current_route53_record_set = client.list_resource_record_sets(
-        HostedZoneId=ROUTE_53_ZONE_ID,
+        HostedZoneId=ROUTE_53_HOSTED_ZONE_ID,
         StartRecordName=domain,
         StartRecordType=ROUTE_53_RECORD_TYPE,
     )
@@ -46,9 +60,17 @@ def get_dns_record(domain: str) -> Optional[str]:
 
 
 def set_dns_record(domain: str, ip: str):
+    """Change the DNS record for the given domain.
+
+    See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/route53/client/change_resource_record_sets.html
+
+    :param domain:
+    :param ip:
+    :return:
+    """
     client = route_53_client()
     client.change_resource_record_sets(
-        HostedZoneId=ROUTE_53_ZONE_ID,
+        HostedZoneId=ROUTE_53_HOSTED_ZONE_ID,
         ChangeBatch={
             "Changes": [
                 {
