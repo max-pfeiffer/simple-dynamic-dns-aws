@@ -13,12 +13,12 @@ repos:
         entry: ruff check
         language: python
         types_or: [python, pyi]
-        args: ["--fix", "--config", "pyproject.toml", "lambda"]
+        args: ["--fix", "--config", "pyproject.toml", "aws", "tests"]
         require_serial: true
       - id: ruff-format
         name: ruff-format
         entry: ruff format
         language: python
         types_or: [python, pyi]
-        args: ["--config", "pyproject.toml", "lambda"]
+        args: ["--config", "pyproject.toml", "aws", "tests"]
         require_serial: true
