@@ -14,6 +14,12 @@ ROUTE_53_RECORD_TTL: int = 300
 
 
 def route_53_client() -> BaseClient:
+    """Instantiate the Route53 client.
+
+    See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/route53.html
+
+    :return:
+    """
     client = boto3.client("route53")
     return client
 
