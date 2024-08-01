@@ -9,7 +9,6 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "3.12.*"
 boto3 = "1.34.145"
-requests = "2.32.3"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "3.7.1"
@@ -17,7 +16,6 @@ pytest = "8.3.1"
 pytest-mock = "3.14.0"
 pytest-dotenv = "0.5.2"
 python-on-whales = "0.72.0"
-responses = "0.25.3"
 ruff = "0.5.1"
 
 [build-system]
