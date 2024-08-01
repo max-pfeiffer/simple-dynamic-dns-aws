@@ -1,19 +1,17 @@
+from secrets import token_hex
 from unittest.mock import MagicMock
+from uuid import uuid4
 
 import pytest
 
-from aws.lambda_function import lambda_handler, SECRETS_EXTENSION_HTTP_PORT
-import responses
-from secrets import token_hex
-from uuid import uuid4
+from aws.lambda_function import lambda_handler
 
 
-@responses.activate
-def test_lambda_handler(mocked_route_53_client: MagicMock) -> None:
+def test_lambda_handler(
+    mocked_route_53_client: MagicMock, mocked_secrets_manager: MagicMock
+) -> None:
     client_id = str(uuid4())
     test_token = token_hex()
-    secrets_extension_endpoint = f"http://localhost:{SECRETS_EXTENSION_HTTP_PORT}/secretsmanager/get?secretId={client_id}"
-    responses.get(secrets_extension_endpoint, json={"SecretString": test_token})
     event: dict = {
         "queryStringParameters": {
             "client_id": client_id,
@@ -22,6 +20,8 @@ def test_lambda_handler(mocked_route_53_client: MagicMock) -> None:
             "token": test_token,
         }
     }
+    mocked_secrets_manager.get_secret_value.return_value = {"SecretString": test_token}
+
     response: dict = lambda_handler(event, {})
 
     assert response["statusCode"] == 200
@@ -29,12 +29,11 @@ def test_lambda_handler(mocked_route_53_client: MagicMock) -> None:
     mocked_route_53_client.change_resource_record_sets.assert_called_once()
 
 
-@responses.activate
-def test_lambda_handler_invalid_token(mocked_route_53_client: MagicMock) -> None:
+def test_lambda_handler_invalid_token(
+    mocked_route_53_client: MagicMock, mocked_secrets_manager: MagicMock
+) -> None:
     client_id = str(uuid4())
     test_token = token_hex()
-    secrets_extension_endpoint = f"http://localhost:{SECRETS_EXTENSION_HTTP_PORT}/secretsmanager/get?secretId={client_id}"
-    responses.get(secrets_extension_endpoint, json={"SecretString": test_token})
     event: dict = {
         "queryStringParameters": {
             "client_id": client_id,
@@ -43,6 +42,8 @@ def test_lambda_handler_invalid_token(mocked_route_53_client: MagicMock) -> None
             "token": "invalid_token",
         }
     }
+    mocked_secrets_manager.get_secret_value.return_value = {"SecretString": test_token}
+
     response: dict = lambda_handler(event, {})
 
     assert response["statusCode"] == 401
@@ -75,10 +76,11 @@ def test_lambda_handler_invalid_token(mocked_route_53_client: MagicMock) -> None
     ],
 )
 def test_lambda_handler_missing_query_parameters(
-    event: dict, mocked_route_53_client: MagicMock
+    event: dict, mocked_route_53_client: MagicMock, mocked_secrets_manager: MagicMock
 ) -> None:
     response: dict = lambda_handler(event, {})
 
     assert response["statusCode"] == 400
+    mocked_secrets_manager.get_secret_value.assert_not_called()
     mocked_route_53_client.list_resource_record_sets.assert_not_called()
     mocked_route_53_client.change_resource_record_sets.assert_not_called()

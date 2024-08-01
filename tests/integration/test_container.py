@@ -18,7 +18,7 @@ def test_container_missing_request_parameters(container: Container, event: dict)
     assert "Missing request parameters" in response_content["body"]
 
 
-def test_container_missing(container: Container, event: dict):
+def test_container_with_request_parameters(container: Container, event: dict):
     url = "http://localhost:8080/2015-03-31/functions/function/invocations"
     client_id = os.environ.get("CLIENT_ID")
     domain = os.environ.get("DOMAIN")
@@ -37,6 +37,4 @@ def test_container_missing(container: Container, event: dict):
 
     response_content: dict = response.json()
 
-    assert (
-        "/secretsmanager/get?secretId=avm-fritz-box" in response_content["errorMessage"]
-    )
+    assert "You must specify a region." in response_content["errorMessage"]
