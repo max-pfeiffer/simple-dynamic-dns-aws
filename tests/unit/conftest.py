@@ -15,12 +15,50 @@ def mocked_route_53_client(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
 
 
 @pytest.fixture(scope="function")
-def mocked_secrets_manager(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture):
+def mocked_secrets_manager_cache(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+):
     with monkeypatch.context() as mp:
-        mocked_secrets_manager = mocker.MagicMock()
+        mocked_secrets_manager_cache = mocker.MagicMock()
 
-        def get_mocked_secrets_manager():
-            return mocked_secrets_manager
+        def get_mocked_secrets_manager_cache():
+            return mocked_secrets_manager_cache
 
-        mp.setattr("aws.lambda_function.secrets_manager", get_mocked_secrets_manager)
-        yield mocked_secrets_manager
+        mp.setattr(
+            "aws.lambda_function.secrets_manager_cache",
+            get_mocked_secrets_manager_cache,
+        )
+        yield mocked_secrets_manager_cache
+
+
+@pytest.fixture(scope="function")
+def route_53_client_response() -> dict:
+    return {
+        "ResponseMetadata": {
+            "RequestId": "2c3fc3de-fcb7-4ae0-a6a3-5c11f454980f",
+            "HTTPStatusCode": 200,
+            "HTTPHeaders": {
+                "x-amzn-requestid": "2c3fc3de-fcb7-4ae0-a6a3-5c11f454980f",
+                "content-type": "text/xml",
+                "content-length": "436",
+                "date": "Mon, 05 Aug 2024 18:24:17 GMT",
+            },
+            "RetryAttempts": 0,
+        },
+        "ResourceRecordSets": [
+            {
+                "Name": "foo.bar.",
+                "Type": "A",
+                "TTL": 300,
+                "ResourceRecords": [{"Value": "123.134.84.62"}],
+            },
+            {
+                "Name": "boom.bang.",
+                "Type": "A",
+                "TTL": 300,
+                "ResourceRecords": [{"Value": "231.134.85.63"}],
+            },
+        ],
+        "IsTruncated": False,
+        "MaxItems": "100",
+    }

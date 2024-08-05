@@ -8,7 +8,7 @@ from aws.lambda_function import lambda_handler
 
 
 def test_lambda_handler(
-    mocked_route_53_client: MagicMock, mocked_secrets_manager: MagicMock
+    mocked_route_53_client: MagicMock, mocked_secrets_manager_cache: MagicMock
 ) -> None:
     client_id = str(uuid4())
     test_token = token_hex()
@@ -20,7 +20,7 @@ def test_lambda_handler(
             "token": test_token,
         }
     }
-    mocked_secrets_manager.get_secret_value.return_value = {"SecretString": test_token}
+    mocked_secrets_manager_cache.get_secret_string.return_value = test_token
 
     response: dict = lambda_handler(event, {})
 
@@ -30,7 +30,7 @@ def test_lambda_handler(
 
 
 def test_lambda_handler_invalid_token(
-    mocked_route_53_client: MagicMock, mocked_secrets_manager: MagicMock
+    mocked_route_53_client: MagicMock, mocked_secrets_manager_cache: MagicMock
 ) -> None:
     client_id = str(uuid4())
     test_token = token_hex()
@@ -42,7 +42,7 @@ def test_lambda_handler_invalid_token(
             "token": "invalid_token",
         }
     }
-    mocked_secrets_manager.get_secret_value.return_value = {"SecretString": test_token}
+    mocked_secrets_manager_cache.get_secret_string.return_value = test_token
 
     response: dict = lambda_handler(event, {})
 
@@ -76,11 +76,66 @@ def test_lambda_handler_invalid_token(
     ],
 )
 def test_lambda_handler_missing_query_parameters(
-    event: dict, mocked_route_53_client: MagicMock, mocked_secrets_manager: MagicMock
+    event: dict,
+    mocked_route_53_client: MagicMock,
+    mocked_secrets_manager_cache: MagicMock,
 ) -> None:
     response: dict = lambda_handler(event, {})
 
     assert response["statusCode"] == 400
-    mocked_secrets_manager.get_secret_value.assert_not_called()
+    mocked_secrets_manager_cache.get_secret_string.assert_not_called()
     mocked_route_53_client.list_resource_record_sets.assert_not_called()
     mocked_route_53_client.change_resource_record_sets.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "domain, ip, result, dns_record_needs_update",
+    [
+        (
+            "foo.bar",
+            "123.134.84.62",
+            "Success: DNS record matched and was not updated",
+            False,
+        ),
+        (
+            "boom.bang",
+            "231.134.85.63",
+            "Success: DNS record matched and was not updated",
+            False,
+        ),
+        ("cling.clang", "156.167.66.66", "Success: DNS record was updated", True),
+        ("foo.bar", "192.168.23.162", "Success: DNS record was updated", True),
+        ("boom.bang", "231.134.85.64", "Success: DNS record was updated", True),
+    ],
+)
+def test_lambda_handler_multiple_dns_entries(
+    mocked_route_53_client: MagicMock,
+    mocked_secrets_manager_cache: MagicMock,
+    route_53_client_response: dict,
+    domain: str,
+    ip: str,
+    result: str,
+    dns_record_needs_update: bool,
+) -> None:
+    client_id = str(uuid4())
+    test_token = token_hex()
+    event: dict = {
+        "queryStringParameters": {
+            "client_id": client_id,
+            "domain": domain,
+            "ip": ip,
+            "token": test_token,
+        }
+    }
+    mocked_secrets_manager_cache.get_secret_string.return_value = test_token
+    mocked_route_53_client.list_resource_record_sets.return_value = (
+        route_53_client_response
+    )
+
+    response: dict = lambda_handler(event, {})
+
+    assert response["statusCode"] == 200
+    assert result in response["body"]
+    mocked_route_53_client.list_resource_record_sets.assert_called_once()
+    if dns_record_needs_update:
+        mocked_route_53_client.change_resource_record_sets.assert_called_once()

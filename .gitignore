@@ -1,3 +1,4 @@
 .idea
 .venv
 .env
+docker_build.sh

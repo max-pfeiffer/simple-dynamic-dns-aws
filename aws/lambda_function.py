@@ -6,11 +6,11 @@ from typing import Optional
 import boto3
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
+from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
-SECRETS_EXTENSION_HTTP_PORT: str = "2773"
 ROUTE_53_HOSTED_ZONE_ID: str = os.environ.get("ROUTE_53_HOSTED_ZONE_ID")
 ROUTE_53_RECORD_TYPE: str = "A"
 ROUTE_53_RECORD_TTL: int = 300
@@ -27,29 +27,30 @@ def route_53_client() -> BaseClient:
     return client
 
 
-def secrets_manager() -> BaseClient:
-    """Instantiate the SecretsManager.
+def secrets_manager_cache() -> SecretCache:
+    """Instantiate the SecretsManager and it's cache.
 
-    See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/route53.html
+    See: https://github.com/aws/aws-secretsmanager-caching-python?tab=readme-ov-file#usage
 
     :return:
     """
     client = boto3.client("secretsmanager")
-    return client
+    cache_config = SecretCacheConfig()
+    cache = SecretCache(config=cache_config, client=client)
+    return cache
 
 
 def get_secret(secret_id: str) -> str:
     """Retrieve secret.
 
-    See: https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieving-secrets_lambda.html
+    See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/secretsmanager/client/get_secret_value.html
 
     :param secret_id:
     :return:
     """
     logger.info(f"Retrieving secret for secret_id {secret_id}")
-    client = secrets_manager()
-    secret_data = client.get_secret_value(SecretId=secret_id)
-    secret = secret_data["SecretString"]
+    cache = secrets_manager_cache()
+    secret = cache.get_secret_string(secret_id)
     return secret
 
 
@@ -69,9 +70,13 @@ def get_dns_record(domain: str) -> Optional[str]:
         StartRecordType=ROUTE_53_RECORD_TYPE,
     )
     try:
-        current_route53_ip = current_route53_record_set["ResourceRecordSets"][0][
-            "ResourceRecords"
-        ][0]["Value"]
+        resource_record_sets = current_route53_record_set["ResourceRecordSets"]
+        matching_resource_record_set = [
+            resource_record_set
+            for resource_record_set in resource_record_sets
+            if resource_record_set["Name"] == f"{domain}."
+        ][0]
+        current_route53_ip = matching_resource_record_set["ResourceRecords"][0]["Value"]
     except (KeyError, IndexError):
         logger.info(f"Could not find IP address for domain {domain}")
         current_route53_ip = None
