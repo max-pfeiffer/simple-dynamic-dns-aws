@@ -1,3 +1,5 @@
+"""Test utilities."""
+
 from pathlib import Path
 
 
@@ -14,5 +16,7 @@ def get_dockerfile() -> Path:
 
     :return:
     """
-    docker_file_path = Path(__file__).parent.resolve() / "Dockerfile"
+    docker_file_path = (
+        Path(__file__).parent.parent.resolve() / "container" / "Dockerfile"
+    )
     return docker_file_path

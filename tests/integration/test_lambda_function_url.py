@@ -1,10 +1,17 @@
+"""Tests for deployed Lambda function."""
+
 import os
+
 import pytest
 import requests
 
 
 @pytest.mark.skip
 def test_lambda_function_url():
+    """Test the deployed AWS Lambda function.
+
+    :return:
+    """
     url = os.environ.get("LAMBDA_FUNCTION_URL")
     client_id = os.environ.get("CLIENT_ID")
     domain = os.environ.get("DOMAIN")

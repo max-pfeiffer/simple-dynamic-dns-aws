@@ -1,9 +1,17 @@
+"""Unit test fixtures."""
+
 import pytest
 from pytest_mock import MockerFixture
 
 
 @pytest.fixture(scope="function")
 def mocked_route_53_client(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture):
+    """Provide a mocked Route 53 client.
+
+    :param monkeypatch:
+    :param mocker:
+    :return:
+    """
     with monkeypatch.context() as mp:
         mocked_route_53_client = mocker.MagicMock()
 
@@ -18,6 +26,12 @@ def mocked_route_53_client(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
 def mocked_secrets_manager_cache(
     monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
 ):
+    """Provide a mocked secrets manager cache.
+
+    :param monkeypatch:
+    :param mocker:
+    :return:
+    """
     with monkeypatch.context() as mp:
         mocked_secrets_manager_cache = mocker.MagicMock()
 
@@ -33,6 +47,10 @@ def mocked_secrets_manager_cache(
 
 @pytest.fixture(scope="function")
 def route_53_client_response() -> dict:
+    """Provide a mocked route 53 client response.
+
+    :return:
+    """
     return {
         "ResponseMetadata": {
             "RequestId": "2c3fc3de-fcb7-4ae0-a6a3-5c11f454980f",

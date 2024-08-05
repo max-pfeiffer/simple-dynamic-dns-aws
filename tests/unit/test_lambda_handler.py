@@ -1,3 +1,5 @@
+"""Tests for lambda_handler function."""
+
 from secrets import token_hex
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -10,6 +12,12 @@ from aws.lambda_function import lambda_handler
 def test_lambda_handler(
     mocked_route_53_client: MagicMock, mocked_secrets_manager_cache: MagicMock
 ) -> None:
+    """Test the happy path for lambda_handler().
+
+    :param mocked_route_53_client:
+    :param mocked_secrets_manager_cache:
+    :return:
+    """
     client_id = str(uuid4())
     test_token = token_hex()
     event: dict = {
@@ -32,6 +40,12 @@ def test_lambda_handler(
 def test_lambda_handler_invalid_token(
     mocked_route_53_client: MagicMock, mocked_secrets_manager_cache: MagicMock
 ) -> None:
+    """Test calling lambda_handler() with an invalid token.
+
+    :param mocked_route_53_client:
+    :param mocked_secrets_manager_cache:
+    :return:
+    """
     client_id = str(uuid4())
     test_token = token_hex()
     event: dict = {
@@ -80,6 +94,13 @@ def test_lambda_handler_missing_query_parameters(
     mocked_route_53_client: MagicMock,
     mocked_secrets_manager_cache: MagicMock,
 ) -> None:
+    """Test lambda_handler() with a missing query parameters.
+
+    :param event:
+    :param mocked_route_53_client:
+    :param mocked_secrets_manager_cache:
+    :return:
+    """
     response: dict = lambda_handler(event, {})
 
     assert response["statusCode"] == 400
@@ -117,6 +138,17 @@ def test_lambda_handler_multiple_dns_entries(
     result: str,
     dns_record_needs_update: bool,
 ) -> None:
+    """Test if lambda_handler() deals correctly with multiple DNS records.
+
+    :param mocked_route_53_client:
+    :param mocked_secrets_manager_cache:
+    :param route_53_client_response:
+    :param domain:
+    :param ip:
+    :param result:
+    :param dns_record_needs_update:
+    :return:
+    """
     client_id = str(uuid4())
     test_token = token_hex()
     event: dict = {

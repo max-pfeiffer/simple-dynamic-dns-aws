@@ -1,12 +1,14 @@
+"""AWS Lambda function."""
+
 import json
 import logging
 import os
 from typing import Optional
 
 import boto3
+from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
-from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
@@ -71,11 +73,11 @@ def get_dns_record(domain: str) -> Optional[str]:
     )
     try:
         resource_record_sets = current_route53_record_set["ResourceRecordSets"]
-        matching_resource_record_set = [
+        matching_resource_record_set = next(
             resource_record_set
             for resource_record_set in resource_record_sets
             if resource_record_set["Name"] == f"{domain}."
-        ][0]
+        )
         current_route53_ip = matching_resource_record_set["ResourceRecords"][0]["Value"]
     except (KeyError, IndexError):
         logger.info(f"Could not find IP address for domain {domain}")
@@ -113,6 +115,12 @@ def set_dns_record(domain: str, ip: str):
 
 
 def lambda_handler(event: dict, context: dict):
+    """Lambda handler.
+
+    :param event:
+    :param context:
+    :return:
+    """
     logger.info(f"ROUTE_53_HOSTED_ZONE_ID: {ROUTE_53_HOSTED_ZONE_ID}")
     # Checking if all request parameters are present
     query_parameters = event["queryStringParameters"]

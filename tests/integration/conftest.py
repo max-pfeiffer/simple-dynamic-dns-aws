@@ -1,10 +1,10 @@
 """Basic test fixtures."""
 
 import pytest
-from python_on_whales import DockerClient, Image, Builder, Container
+from python_on_whales import Builder, Container, DockerClient, Image
 
-from container.utils import get_docker_context, get_dockerfile
-from tests.constants import TEST_IMAGE_TAG, PLATFORM, CONTAINER_PORT
+from tests.constants import CONTAINER_PORT, PLATFORM, TEST_IMAGE_TAG
+from tests.utils import get_docker_context, get_dockerfile
 
 
 @pytest.fixture(scope="session")
@@ -34,6 +34,12 @@ def builder(docker_client: DockerClient) -> Builder:
 
 @pytest.fixture(scope="session")
 def docker_image(docker_client: DockerClient, builder: Builder) -> Image:
+    """Provide a Python on Whales Docker image instance.
+
+    :param docker_client:
+    :param builder:
+    :return:
+    """
     image = docker_client.build(
         context_path=get_docker_context(),
         file=get_dockerfile(),
@@ -49,6 +55,12 @@ def docker_image(docker_client: DockerClient, builder: Builder) -> Image:
 
 @pytest.fixture(scope="function")
 def container(docker_client: DockerClient, docker_image: Image):
+    """Run the Docker image.
+
+    :param docker_client:
+    :param docker_image:
+    :return:
+    """
     dyn_dns_container: Container = docker_client.container.run(
         docker_image,
         platform=PLATFORM,
@@ -64,6 +76,10 @@ def container(docker_client: DockerClient, docker_image: Image):
 
 @pytest.fixture(scope="function")
 def event() -> dict:
+    """AWS lambda event fixture.
+
+    :return:
+    """
     return {
         "version": "2.0",
         "routeKey": "$default",
