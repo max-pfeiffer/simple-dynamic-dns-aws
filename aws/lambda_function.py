@@ -79,7 +79,7 @@ def get_dns_record(domain: str) -> Optional[str]:
             if resource_record_set["Name"] == f"{domain}."
         )
         current_route53_ip = matching_resource_record_set["ResourceRecords"][0]["Value"]
-    except (KeyError, IndexError):
+    except (KeyError, IndexError, StopIteration):
         logger.info(f"Could not find IP address for domain {domain}")
         current_route53_ip = None
     return current_route53_ip
