@@ -5,7 +5,7 @@ import os
 import pytest
 import requests
 
-from tests.constants import CONTAINER_PORT
+from tests.constants import EXPOSED_CONTAINER_PORT
 
 
 @pytest.mark.usefixtures("container")
@@ -15,7 +15,7 @@ def test_container_missing_request_parameters(event: dict):
     :param event:
     :return:
     """
-    url = f"http://localhost:{CONTAINER_PORT}/2015-03-31/functions/function/invocations"
+    url = f"http://localhost:{EXPOSED_CONTAINER_PORT}/2015-03-31/functions/function/invocations"
 
     response = requests.post(url, json=event)
     assert response.status_code == 200
@@ -33,7 +33,7 @@ def test_container_with_request_parameters(event: dict):
     :param event:
     :return:
     """
-    url = "http://localhost:8080/2015-03-31/functions/function/invocations"
+    url = f"http://localhost:{EXPOSED_CONTAINER_PORT}/2015-03-31/functions/function/invocations"
     client_id = os.environ.get("CLIENT_ID")
     domain = os.environ.get("DOMAIN")
     ip = os.environ.get("IP")

@@ -3,7 +3,7 @@
 import pytest
 from python_on_whales import Builder, Container, DockerClient, Image
 
-from tests.constants import CONTAINER_PORT, PLATFORM, TEST_IMAGE_TAG
+from tests.constants import EXPOSED_CONTAINER_PORT, PLATFORM, TEST_IMAGE_TAG
 from tests.utils import get_docker_context, get_dockerfile
 
 
@@ -64,7 +64,7 @@ def container(docker_client: DockerClient, docker_image: Image):
     dyn_dns_container: Container = docker_client.container.run(
         docker_image,
         platform=PLATFORM,
-        publish=[(CONTAINER_PORT, CONTAINER_PORT)],
+        publish=[(EXPOSED_CONTAINER_PORT, "8080")],
         detach=True,
     )
 
