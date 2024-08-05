@@ -1,6 +1,7 @@
 """Tests for Docker container."""
 
 import os
+from time import sleep
 
 import pytest
 import requests
@@ -15,6 +16,7 @@ def test_container_missing_request_parameters(event: dict):
     :param event:
     :return:
     """
+    sleep(3)
     url = f"http://localhost:{EXPOSED_CONTAINER_PORT}/2015-03-31/functions/function/invocations"
 
     response = requests.post(url, json=event)
@@ -33,6 +35,7 @@ def test_container_with_request_parameters(event: dict):
     :param event:
     :return:
     """
+    sleep(3)
     url = f"http://localhost:{EXPOSED_CONTAINER_PORT}/2015-03-31/functions/function/invocations"
     client_id = os.environ.get("CLIENT_ID")
     domain = os.environ.get("DOMAIN")
