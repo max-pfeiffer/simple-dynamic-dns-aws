@@ -2,3 +2,4 @@
 .venv
 .env
 docker_build.sh
+__pycache__

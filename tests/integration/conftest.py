@@ -87,7 +87,7 @@ def event() -> dict:
         "rawQueryString": "parameter1=value1&parameter1=value2&parameter2=value",
         "cookies": ["cookie1", "cookie2"],
         "headers": {"Header1": "value1", "Header2": "value1,value2"},
-        "queryStringParameters": {},
+        "queryStringParameters": {"parameter1": "value1,value2", "parameter2": "value"},
         "requestContext": {
             "accountId": "123456789012",
             "apiId": "api-id",

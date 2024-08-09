@@ -3,12 +3,14 @@
 import json
 import logging
 import os
-from typing import Optional
+from collections import namedtuple
 
 import boto3
 from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
+
+DnsRecord = namedtuple("DnsRecord", ["domain", "ip"])
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
@@ -56,62 +58,77 @@ def get_secret(secret_id: str) -> str:
     return secret
 
 
-def get_dns_record(domain: str) -> Optional[str]:
-    """Retrieve the DNS record for the given domain if it exists.
+def get_dns_records(domains: list[str]) -> list[DnsRecord]:
+    """Retrieve the DNS records for the given domains if they exist.
 
     See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/route53/client/list_resource_record_sets.html
 
     :param domain:
     :return:
     """
-    logger.info(f"Getting DNS record for {domain}")
+    logger.info(f"Getting DNS record for {domains}")
     client = route_53_client()
     current_route53_record_set = client.list_resource_record_sets(
         HostedZoneId=ROUTE_53_HOSTED_ZONE_ID,
-        StartRecordName=domain,
         StartRecordType=ROUTE_53_RECORD_TYPE,
     )
-    try:
-        resource_record_sets = current_route53_record_set["ResourceRecordSets"]
-        matching_resource_record_set = next(
-            resource_record_set
-            for resource_record_set in resource_record_sets
-            if resource_record_set["Name"] == f"{domain}."
-        )
-        current_route53_ip = matching_resource_record_set["ResourceRecords"][0]["Value"]
-    except (KeyError, IndexError, StopIteration):
-        logger.info(f"Could not find IP address for domain {domain}")
-        current_route53_ip = None
-    return current_route53_ip
+    dns_records = []
+    for domain in domains:
+        try:
+            resource_record_sets = current_route53_record_set["ResourceRecordSets"]
+            matching_resource_record_set = next(
+                resource_record_set
+                for resource_record_set in resource_record_sets
+                if resource_record_set["Name"] == f"{domain}."
+            )
+            current_route53_ip = matching_resource_record_set["ResourceRecords"][0][
+                "Value"
+            ]
+            dns_records.append(DnsRecord(domain=domain, ip=current_route53_ip))
+        except (KeyError, IndexError, StopIteration):
+            logger.info(f"Could not find IP address for domain {domain}")
+            dns_records.append(DnsRecord(domain=domain, ip=None))
+    return dns_records
 
 
-def set_dns_record(domain: str, ip: str):
+def set_dns_records(dns_records: list[DnsRecord], ip: str):
     """Change the DNS record for the given domain.
 
     See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/route53/client/change_resource_record_sets.html
 
-    :param domain:
+    :param dns_records:
     :param ip:
     :return:
     """
-    logger.info(f"Setting DNS record for {domain} with IP address {ip}")
-    client = route_53_client()
-    client.change_resource_record_sets(
-        HostedZoneId=ROUTE_53_HOSTED_ZONE_ID,
-        ChangeBatch={
-            "Changes": [
-                {
-                    "Action": "UPSERT",
-                    "ResourceRecordSet": {
-                        "Name": domain,
-                        "Type": ROUTE_53_RECORD_TYPE,
-                        "TTL": ROUTE_53_RECORD_TTL,
-                        "ResourceRecords": [{"Value": ip}],
-                    },
-                }
-            ]
-        },
-    )
+    changes: list[dict] = []
+    for dns_record in dns_records:
+        if (dns_record.ip is None) or (dns_record.ip != ip):
+            logger.info(
+                f"DNS record for domain {dns_record.domain} "
+                f"will be updated with ip {ip}"
+            )
+            change = {
+                "Action": "UPSERT",
+                "ResourceRecordSet": {
+                    "Name": dns_record.domain,
+                    "Type": ROUTE_53_RECORD_TYPE,
+                    "TTL": ROUTE_53_RECORD_TTL,
+                    "ResourceRecords": [{"Value": ip}],
+                },
+            }
+            changes.append(change)
+        else:
+            logger.info(
+                f"DNS record for domain {dns_record.domain} "
+                f"matched and will not be updated"
+            )
+
+    if changes:
+        client = route_53_client()
+        client.change_resource_record_sets(
+            HostedZoneId=ROUTE_53_HOSTED_ZONE_ID,
+            ChangeBatch={"Changes": changes},
+        )
 
 
 def lambda_handler(event: dict, context: dict):
@@ -123,12 +140,12 @@ def lambda_handler(event: dict, context: dict):
     """
     logger.info(f"ROUTE_53_HOSTED_ZONE_ID: {ROUTE_53_HOSTED_ZONE_ID}")
     # Checking if all request parameters are present
-    query_parameters = event["queryStringParameters"]
+    query_parameters: dict = event["queryStringParameters"]
     try:
-        client_id = query_parameters["client_id"]
-        domain = query_parameters["domain"]
-        ip = query_parameters["ip"]
-        token = query_parameters["token"]
+        client_id: str = query_parameters["client_id"]
+        domains: list[str] = query_parameters["domain"].split(",")
+        ip: str = query_parameters["ip"]
+        token: str = query_parameters["token"]
     except KeyError:
         logger.error("Missing query parameters")
         return {"statusCode": 400, "body": json.dumps("Missing request parameters")}
@@ -140,25 +157,12 @@ def lambda_handler(event: dict, context: dict):
         return {"statusCode": 401, "body": json.dumps("Invalid token")}
 
     try:
-        current_ip = get_dns_record(domain)
-        if current_ip is None:
-            set_dns_record(domain, ip)
-        else:
-            if current_ip == ip:
-                logger.info("DNS record matched and was not updated")
-                return {
-                    "statusCode": 200,
-                    "body": json.dumps(
-                        "Success: DNS record matched and was not updated"
-                    ),
-                }
-            else:
-                set_dns_record(domain, current_ip)
-
+        dns_records = get_dns_records(domains)
+        set_dns_records(dns_records, ip)
         logger.info("DNS record was updated")
         return {
             "statusCode": 200,
-            "body": json.dumps("Success: DNS record was updated"),
+            "body": json.dumps("DNS record was updated"),
         }
     except ClientError as exc:
         message = str(exc)
