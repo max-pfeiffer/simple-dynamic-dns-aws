@@ -19,6 +19,8 @@ def test_container(docker_client: DockerClient, docker_image: Image, event: dict
         platform=PLATFORM,
         publish=[(EXPOSED_CONTAINER_PORT, "8080")],
         detach=True,
+        interactive=True,
+        tty=True,
     ):
         # Test the container with missing parameters
         url = f"http://localhost:{EXPOSED_CONTAINER_PORT}/2015-03-31/functions/function/invocations"
