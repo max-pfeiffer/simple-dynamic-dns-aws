@@ -1,14 +1,18 @@
 """Tests for Docker container."""
 
 import os
-from time import sleep
 
+import pytest
 import requests
 from python_on_whales import DockerClient, Image
 
 from tests.constants import EXPOSED_CONTAINER_PORT, PLATFORM
+from tests.utils import running_on_github_actions
 
 
+@pytest.mark.skipif(
+    running_on_github_actions(), reason="GitHub Actions cannot run ARM64 containers"
+)
 def test_container(docker_client: DockerClient, docker_image: Image, event: dict):
     """Test the container.
 
@@ -22,11 +26,7 @@ def test_container(docker_client: DockerClient, docker_image: Image, event: dict
         detach=True,
         interactive=True,
         tty=True,
-    ) as lambda_container:
-        while not lambda_container.state.running:
-            sleep(0.1)
-            assert not lambda_container.state.error
-
+    ):
         # Test the container with missing parameters
         url = f"http://localhost:{EXPOSED_CONTAINER_PORT}/2015-03-31/functions/function/invocations"
 
