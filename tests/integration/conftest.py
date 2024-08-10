@@ -1,9 +1,9 @@
 """Basic test fixtures."""
 
 import pytest
-from python_on_whales import Builder, Container, DockerClient, Image
+from python_on_whales import Builder, DockerClient, Image
 
-from tests.constants import EXPOSED_CONTAINER_PORT, PLATFORM, TEST_IMAGE_TAG
+from tests.constants import PLATFORM, TEST_IMAGE_TAG
 from tests.utils import get_docker_context, get_dockerfile
 
 
@@ -54,27 +54,6 @@ def docker_image(docker_client: DockerClient, builder: Builder) -> Image:
 
 
 @pytest.fixture(scope="function")
-def container(docker_client: DockerClient, docker_image: Image):
-    """Run the Docker image.
-
-    :param docker_client:
-    :param docker_image:
-    :return:
-    """
-    dyn_dns_container: Container = docker_client.container.run(
-        docker_image,
-        platform=PLATFORM,
-        publish=[(EXPOSED_CONTAINER_PORT, "8080")],
-        detach=True,
-    )
-
-    yield dyn_dns_container
-
-    dyn_dns_container.stop()
-    dyn_dns_container.remove()
-
-
-@pytest.fixture(scope="function")
 def event() -> dict:
     """AWS lambda event fixture.
 
@@ -87,7 +66,7 @@ def event() -> dict:
         "rawQueryString": "parameter1=value1&parameter1=value2&parameter2=value",
         "cookies": ["cookie1", "cookie2"],
         "headers": {"Header1": "value1", "Header2": "value1,value2"},
-        "queryStringParameters": {},
+        "queryStringParameters": {"parameter1": "value1,value2", "parameter2": "value"},
         "requestContext": {
             "accountId": "123456789012",
             "apiId": "api-id",

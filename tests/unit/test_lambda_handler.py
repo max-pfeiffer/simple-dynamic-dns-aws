@@ -110,23 +110,21 @@ def test_lambda_handler_missing_query_parameters(
 
 
 @pytest.mark.parametrize(
-    "domain, ip, result, dns_record_needs_update",
+    "domain, ip, dns_record_needs_update",
     [
         (
             "foo.bar",
             "123.134.84.62",
-            "Success: DNS record matched and was not updated",
             False,
         ),
         (
             "boom.bang",
             "231.134.85.63",
-            "Success: DNS record matched and was not updated",
             False,
         ),
-        ("cling.clang", "156.167.66.66", "Success: DNS record was updated", True),
-        ("foo.bar", "192.168.23.162", "Success: DNS record was updated", True),
-        ("boom.bang", "231.134.85.64", "Success: DNS record was updated", True),
+        ("cling.clang", "156.167.66.66", True),
+        ("foo.bar", "192.168.23.162", True),
+        ("boom.bang", "231.134.85.64", True),
     ],
 )
 def test_lambda_handler_multiple_dns_entries(
@@ -135,7 +133,6 @@ def test_lambda_handler_multiple_dns_entries(
     route_53_client_response: dict,
     domain: str,
     ip: str,
-    result: str,
     dns_record_needs_update: bool,
 ) -> None:
     """Test if lambda_handler() deals correctly with multiple DNS records.
@@ -145,7 +142,6 @@ def test_lambda_handler_multiple_dns_entries(
     :param route_53_client_response:
     :param domain:
     :param ip:
-    :param result:
     :param dns_record_needs_update:
     :return:
     """
@@ -167,7 +163,56 @@ def test_lambda_handler_multiple_dns_entries(
     response: dict = lambda_handler(event, {})
 
     assert response["statusCode"] == 200
-    assert result in response["body"]
+    assert "DNS record was updated" in response["body"]
     mocked_route_53_client.list_resource_record_sets.assert_called_once()
     if dns_record_needs_update:
         mocked_route_53_client.change_resource_record_sets.assert_called_once()
+        changes = mocked_route_53_client.change_resource_record_sets.call_args.kwargs[
+            "ChangeBatch"
+        ]["Changes"]
+        assert changes
+        assert changes[0]["ResourceRecordSet"]["Name"] == domain
+        assert changes[0]["ResourceRecordSet"]["ResourceRecords"][0]["Value"] == ip
+
+
+def test_lambda_handler_multiple_domains(
+    mocked_route_53_client: MagicMock,
+    mocked_secrets_manager_cache: MagicMock,
+    route_53_client_response: dict,
+) -> None:
+    """Test lambda_handler() with multiple domains in query parameter.
+
+    :param mocked_route_53_client:
+    :param mocked_secrets_manager_cache:
+    :param route_53_client_response:
+    :return:
+    """
+    domains = "foo.bar,boom.bang"
+    ip = "123.45.67.89"
+    client_id = str(uuid4())
+    test_token = token_hex()
+    event: dict = {
+        "queryStringParameters": {
+            "client_id": client_id,
+            "domain": domains,
+            "ip": ip,
+            "token": test_token,
+        }
+    }
+    mocked_secrets_manager_cache.get_secret_string.return_value = test_token
+    mocked_route_53_client.list_resource_record_sets.return_value = (
+        route_53_client_response
+    )
+
+    response: dict = lambda_handler(event, {})
+    assert response["statusCode"] == 200
+    assert "DNS record was updated" in response["body"]
+    mocked_route_53_client.list_resource_record_sets.assert_called_once()
+    mocked_route_53_client.change_resource_record_sets.assert_called_once()
+    changes = mocked_route_53_client.change_resource_record_sets.call_args.kwargs[
+        "ChangeBatch"
+    ]["Changes"]
+    assert len(changes) == 2
+    for index, domain in enumerate(domains.split(",")):
+        assert changes[index]["ResourceRecordSet"]["Name"] == domain
+        assert changes[index]["ResourceRecordSet"]["ResourceRecords"][0]["Value"] == ip
