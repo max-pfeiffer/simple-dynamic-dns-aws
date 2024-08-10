@@ -2,5 +2,5 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![pipeline workflow](https://github.com/max-pfeiffer/dynamic-dns-aws/actions/workflows/pipeline.yaml/badge.svg)
 
-# Dynamic DNS with AWS
+# Simple Dynamic DNS with AWS
 Cost efficient Dynamic DNS with AWS Lamda and Route 53.

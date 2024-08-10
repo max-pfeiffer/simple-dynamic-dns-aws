@@ -2,12 +2,17 @@
 
 import os
 
+import pytest
 import requests
 from python_on_whales import DockerClient, Image
 
 from tests.constants import EXPOSED_CONTAINER_PORT, PLATFORM
+from tests.utils import running_on_github_actions
 
 
+@pytest.mark.skipif(
+    running_on_github_actions(), reason="GitHub Actions cannot run ARM64 containers"
+)
 def test_container(docker_client: DockerClient, docker_image: Image, event: dict):
     """Test the container.
 
