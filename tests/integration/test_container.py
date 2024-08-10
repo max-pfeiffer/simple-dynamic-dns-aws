@@ -1,6 +1,7 @@
 """Tests for Docker container."""
 
 import os
+from time import sleep
 
 import requests
 from python_on_whales import DockerClient, Image
@@ -21,7 +22,11 @@ def test_container(docker_client: DockerClient, docker_image: Image, event: dict
         detach=True,
         interactive=True,
         tty=True,
-    ):
+    ) as lambda_container:
+        while not lambda_container.state.running:
+            sleep(0.1)
+            assert not lambda_container.state.error
+
         # Test the container with missing parameters
         url = f"http://localhost:{EXPOSED_CONTAINER_PORT}/2015-03-31/functions/function/invocations"
 

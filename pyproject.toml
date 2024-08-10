@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "dynamic-dns-aws"
+name = "simple-dynamic-dns-aws"
 version = "0.1.0"
 description = ""
 authors = ["Max Pfeiffer <max@maxpfeiffer.ch>"]
