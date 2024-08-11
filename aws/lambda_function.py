@@ -67,11 +67,20 @@ def get_dns_records(domains: list[str]) -> list[DnsRecord]:
     :return:
     """
     logger.info(f"Getting DNS record for {domains}")
+
+    # Determine StartRecordName
+    domains.sort()
+    start_record_name = domains[0]
+
+    # Get current DNS records
     client = route_53_client()
     current_route53_record_set = client.list_resource_record_sets(
         HostedZoneId=ROUTE_53_HOSTED_ZONE_ID,
         StartRecordType=ROUTE_53_RECORD_TYPE,
+        StartRecordName=start_record_name,
     )
+
+    # Compile return data
     dns_records = []
     for domain in domains:
         try:

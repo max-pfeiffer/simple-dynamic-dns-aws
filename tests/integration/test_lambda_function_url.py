@@ -5,8 +5,13 @@ import os
 import pytest
 import requests
 
+from tests.utils import running_on_github_actions
 
-@pytest.mark.skip
+
+@pytest.mark.skipif(
+    running_on_github_actions(),
+    reason="Environment variables are not configured on GitHub Actions",
+)
 def test_lambda_function_url():
     """Test the deployed AWS Lambda function.
 

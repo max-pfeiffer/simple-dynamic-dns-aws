@@ -213,6 +213,6 @@ def test_lambda_handler_multiple_domains(
         "ChangeBatch"
     ]["Changes"]
     assert len(changes) == 2
-    for index, domain in enumerate(domains.split(",")):
+    for index, domain in enumerate(sorted(domains.split(","))):
         assert changes[index]["ResourceRecordSet"]["Name"] == domain
         assert changes[index]["ResourceRecordSet"]["ResourceRecords"][0]["Value"] == ip
