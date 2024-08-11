@@ -14,7 +14,9 @@ def test_lambda_handler(
 ) -> None:
     """Test the happy path for lambda_handler().
 
+    :type mocked_route_53_client: MagicMock
     :param mocked_route_53_client:
+    :type mocked_secrets_manager_cache: MagicMock
     :param mocked_secrets_manager_cache:
     :return:
     """
@@ -42,7 +44,9 @@ def test_lambda_handler_invalid_token(
 ) -> None:
     """Test calling lambda_handler() with an invalid token.
 
+    :type mocked_route_53_client: MagicMock
     :param mocked_route_53_client:
+    :type mocked_secrets_manager_cache: MagicMock
     :param mocked_secrets_manager_cache:
     :return:
     """
@@ -96,8 +100,11 @@ def test_lambda_handler_missing_query_parameters(
 ) -> None:
     """Test lambda_handler() with a missing query parameters.
 
+    :type event: dict
     :param event:
+    :type mocked_route_53_client: MagicMock
     :param mocked_route_53_client:
+    :type mocked_secrets_manager_cache: MagicMock
     :param mocked_secrets_manager_cache:
     :return:
     """
@@ -137,11 +144,16 @@ def test_lambda_handler_multiple_dns_entries(
 ) -> None:
     """Test if lambda_handler() deals correctly with multiple DNS records.
 
+    :type mocked_route_53_client: MagicMock
     :param mocked_route_53_client:
+    :type mocked_secrets_manager_cache: MagicMock
     :param mocked_secrets_manager_cache:
     :param route_53_client_response:
+    :type domain: str
     :param domain:
+    :type ip: str
     :param ip:
+    :type dns_record_needs_update: bool
     :param dns_record_needs_update:
     :return:
     """
@@ -182,8 +194,11 @@ def test_lambda_handler_multiple_domains(
 ) -> None:
     """Test lambda_handler() with multiple domains in query parameter.
 
+    :type mocked_route_53_client: MagicMock
     :param mocked_route_53_client:
+    :type mocked_secrets_manager_cache: MagicMock
     :param mocked_secrets_manager_cache:
+    :type route_53_client_response: dict
     :param route_53_client_response:
     :return:
     """

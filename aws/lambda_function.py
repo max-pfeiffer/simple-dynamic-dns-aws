@@ -17,7 +17,10 @@ logger.setLevel("INFO")
 
 ROUTE_53_HOSTED_ZONE_ID: str = os.environ.get("ROUTE_53_HOSTED_ZONE_ID")
 ROUTE_53_RECORD_TYPE: str = "A"
-ROUTE_53_RECORD_TTL: int = 300
+ROUTE_53_RECORD_TTL: int = int(os.environ.get("ROUTE_53_RECORD_TTL", "3600"))
+SECRETS_MANAGER_REFRESH_INTERVAL: int = int(
+    os.environ.get("SECRETS_MANAGER_REFRESH_INTERVAL", "86400")
+)
 
 
 def route_53_client() -> BaseClient:
@@ -39,7 +42,9 @@ def secrets_manager_cache() -> SecretCache:
     :return:
     """
     client = boto3.client("secretsmanager")
-    cache_config = SecretCacheConfig()
+    cache_config = SecretCacheConfig(
+        secret_refresh_interval=SECRETS_MANAGER_REFRESH_INTERVAL
+    )
     cache = SecretCache(config=cache_config, client=client)
     return cache
 
@@ -49,6 +54,7 @@ def get_secret(secret_id: str) -> str:
 
     See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/secretsmanager/client/get_secret_value.html
 
+    :type secret_id: str
     :param secret_id:
     :return:
     """
@@ -63,7 +69,8 @@ def get_dns_records(domains: list[str]) -> list[DnsRecord]:
 
     See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/route53/client/list_resource_record_sets.html
 
-    :param domain:
+    :type domains: list[str]
+    :param domains:
     :return:
     """
     logger.info(f"Getting DNS record for {domains}")
@@ -105,7 +112,9 @@ def set_dns_records(dns_records: list[DnsRecord], ip: str):
 
     See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/route53/client/change_resource_record_sets.html
 
+    :type dns_records: list[DnsRecord]
     :param dns_records:
+    :type ip: str
     :param ip:
     :return:
     """
@@ -143,7 +152,9 @@ def set_dns_records(dns_records: list[DnsRecord], ip: str):
 def lambda_handler(event: dict, context: dict):
     """Lambda handler.
 
+    :type: event: dict
     :param event:
+    :type: context: dict
     :param context:
     :return:
     """

@@ -20,6 +20,7 @@ def docker_client() -> DockerClient:
 def builder(docker_client: DockerClient) -> Builder:
     """Provide a Python on Whales BuildX builder instance.
 
+    :type docker_client: DockerClient
     :param docker_client:
     :return:
     """
@@ -36,7 +37,9 @@ def builder(docker_client: DockerClient) -> Builder:
 def docker_image(docker_client: DockerClient, builder: Builder) -> Image:
     """Provide a Python on Whales Docker image instance.
 
+    :type docker_client: DockerClient
     :param docker_client:
+    :type builder: Builder
     :param builder:
     :return:
     """
