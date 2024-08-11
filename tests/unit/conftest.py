@@ -8,7 +8,9 @@ from pytest_mock import MockerFixture
 def mocked_route_53_client(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture):
     """Provide a mocked Route 53 client.
 
+    :type monkeypatch: pytest.MonkeyPatch
     :param monkeypatch:
+    :type mocker: MockerFixture
     :param mocker:
     :return:
     """
@@ -28,7 +30,9 @@ def mocked_secrets_manager_cache(
 ):
     """Provide a mocked secrets manager cache.
 
+    :type monkeypatch: pytest.MonkeyPatch
     :param monkeypatch:
+    :type mocker: MockerFixture
     :param mocker:
     :return:
     """

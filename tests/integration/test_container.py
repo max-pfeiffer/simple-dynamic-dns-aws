@@ -16,6 +16,11 @@ from tests.utils import running_on_github_actions
 def test_container(docker_client: DockerClient, docker_image: Image, event: dict):
     """Test the container.
 
+    :type docker_client: DockerClient
+    :param docker_client:
+    :type docker_image: Image
+    :param docker_image:
+    :type event: dict
     :param event:
     :return:
     """

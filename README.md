@@ -4,19 +4,19 @@
 ![pipeline workflow](https://github.com/max-pfeiffer/simple-dynamic-dns-aws/actions/workflows/pipeline.yaml/badge.svg)
 
 # Simple Dynamic DNS with AWS
-Simple and cost efficient Dynamic DNS with AWS Lamda and Route 53.
+Simple and cost-efficient Dynamic DNS with AWS Lamda and Route 53.
 
 This project provides a AWS Lambda function with which you can set DNS **A** records dynamically for **one** domain
-you have configured in AWS Route 53. For authentication a token is used which is stored using AWS Secrets Manager.
+you have configured in AWS Route 53. For authentication, a token is used which is stored using AWS Secrets Manager.
 
-Usually consumer grade routers (Linksys, AVM etc.) provide a dynamic DNS feature which just supports calling a URL with
+Usually consumer grade routers (Linksys, AVM, etc.) provide a dynamic DNS feature which just supports calling a URL with
 HTTP GET method. All dynamic DNS settings need to be sent via URL query parameters.
 
 If you want to cover this use case, this project is for you.
 
 ## Usage
 ### Manual configuration
-1. Create a private new private container registry in AWS ECR
+1. Create a private container registry in AWS ECR
 2. Build and push the Docker image to that registry:
    ```shell
     aws ecr get-login-password --region <your region> | docker login --username AWS --password-stdin <your ECR registry>
@@ -28,11 +28,16 @@ If you want to cover this use case, this project is for you.
    1. configure a secure token for your client_id
 4. Create a AWS Lambda function:
    1. use the just created Docker image from AWS ECR for the function
-   2. configure environment variable for the function: ROUTE_53_HOSTED_ZONE_ID
+   2. configure environment variables for the function:
+      1. ROUTE_53_HOSTED_ZONE_ID (required)
+      2. ROUTE_53_RECORD_TTL (optional, default=3600sec)
+      3. SECRETS_MANAGER_REFRESH_INTERVAL (optional, default=86400sec)
    3. configure a URL for AWS Lambda function
    4. configure permissions for AWS Lambda function (execution role):
       1. read secret from AWS Secrets Manager
       2. read and write DNS Records with AWS Route 53
 
-Your are ready to go! Configure your Router to call the AWS Lambda function URL with query parameters like this:
-`https://uwigefgf8437rgeydbea2q40jedbl.lambda-url.eu-central-1.on.aws/?domain=www.example.com&ip=123.45.56.78&client_id=linksys_router&token=78234rtgf438g7g43r4bfi3784fgh`
+You are ready to go! Configure your Router to call the AWS Lambda function URL with query parameters like this:
+```http request
+https://uwigefgf8437rgeydbea2q40jedbl.lambda-url.eu-central-1.on.aws/?domain=www.example.com&ip=123.45.56.78&client_id=linksys_router&token=78234rtgf438g7g43r4bfi3784fgh
+```
