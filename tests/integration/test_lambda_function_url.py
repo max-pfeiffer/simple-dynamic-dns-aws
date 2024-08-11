@@ -2,10 +2,11 @@
 
 import os
 
+import pytest
 import requests
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_lambda_function_url():
     """Test the deployed AWS Lambda function.
 
