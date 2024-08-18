@@ -4,6 +4,10 @@ data "aws_caller_identity" "this" {}
 
 data "aws_ecr_authorization_token" "token" {}
 
+data "toml_file" "example" {
+  input = file(local.pyproject_toml)
+}
+
 terraform {
   required_providers {
    aws = {
@@ -13,6 +17,10 @@ terraform {
     docker = {
       source = "kreuzwerker/docker"
       version = "3.0.2"
+    }
+    toml = {
+      source  = "registry.terraform.io/tobotimus/toml"
+      version = "0.3.0"
     }
   }
 }
@@ -38,7 +46,7 @@ module "docker_image" {
 	create_ecr_repo = false
 	ecr_repo = "simple-dyn-dns"
 
-	image_tag = "1.0.0"
+	image_tag = data.toml_file.example.content.tool.poetry.version
     platform = "linux/arm64"
 	source_path = "${local.repo_root}"
 	docker_file_path = "container/Dockerfile"

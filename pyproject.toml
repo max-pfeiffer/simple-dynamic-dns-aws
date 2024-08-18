@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simple-dynamic-dns-aws"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 authors = ["Max Pfeiffer <max@maxpfeiffer.ch>"]
 readme = "README.md"
