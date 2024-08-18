@@ -4,7 +4,7 @@ data "aws_caller_identity" "this" {}
 
 data "aws_ecr_authorization_token" "token" {}
 
-data "toml_file" "example" {
+data "toml_file" "pyproject" {
   input = file(local.pyproject_toml)
 }
 
@@ -52,12 +52,13 @@ resource "aws_secretsmanager_secret_version" "token" {
 module "docker_image" {
 	source = "terraform-aws-modules/lambda/aws//modules/docker-build"
 
-	create_ecr_repo = false
-	ecr_repo = local.aws_name
+    ecr_repo = local.aws_name
+	create_ecr_repo = true
+    ecr_force_delete = true
 
-	image_tag = data.toml_file.example.content.tool.poetry.version
+	image_tag = data.toml_file.pyproject.content.tool.poetry.version
     platform = "linux/arm64"
-	source_path = "${local.repo_root}"
+	source_path = local.repo_root
 	docker_file_path = "container/Dockerfile"
 }
 
@@ -70,7 +71,7 @@ module "lambda_function" {
 
   # Function config
   create_package = false
-  image_uri    = module.docker_image.image_uri
+  image_uri = module.docker_image.image_uri
   package_type = "Image"
   architectures = ["arm64"]
   timeout = 5
