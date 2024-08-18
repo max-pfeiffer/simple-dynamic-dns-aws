@@ -1,0 +1,18 @@
+{
+          "Version": "2012-10-17",
+          "Statement": [
+              {
+                  "Sid" : "AllowPublicHostedZonePermissions",
+                  "Effect": "Allow",
+                  "Action": [
+                      "route53:GetHostedZone",
+                      "route53:ListHostedZones",
+                      "route53:ChangeResourceRecordSets",
+                      "route53:ListResourceRecordSets",
+                      "route53:GetHostedZoneCount",
+                      "route53:ListHostedZonesByName"
+                  ],
+                  "Resource": "*"
+              }
+          ]
+}

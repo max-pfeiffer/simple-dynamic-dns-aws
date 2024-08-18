@@ -1,5 +1,20 @@
 .idea
 .venv
 .env
+.secrets
 docker_build.sh
 __pycache__
+
+# Terraform
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# plan files
+*.tfplan
+
+# Ignore lock file (normally check this in)
+.terraform.lock.hcl

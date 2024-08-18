@@ -17,6 +17,18 @@ This project uses an ARM64 Docker image as it is more cost-efficient to run AWS 
 If you want to cover this use case, this project is for you.
 
 ## Usage
+### OpenTofu
+Deployment is fully automated with [OpenTofu](https://opentofu.org/). Add `.env` and `.secrets` files in `opentofu`
+directory following the examples then you are ready to go.
+In `opentofu` directory just do what you usually need to do:
+```shell
+tofu init
+tofu plan
+tofu apply
+```
+State is by default not persisted in this repository as this is a public one. So you probably want to fork/clone this
+repository and tweak the `.gitignore` file.
+
 ### Manual configuration
 1. Create a private container registry in AWS ECR
 2. Build and push the Docker image to that registry:
