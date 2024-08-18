@@ -1,6 +1,7 @@
 .idea
 .venv
 .env
+.secrets
 docker_build.sh
 __pycache__
 
