@@ -44,10 +44,27 @@ module "docker_image" {
 	source = "terraform-aws-modules/lambda/aws//modules/docker-build"
 
 	create_ecr_repo = false
-	ecr_repo = "simple-dyn-dns"
+	ecr_repo = local.aws_name
 
 	image_tag = data.toml_file.example.content.tool.poetry.version
     platform = "linux/arm64"
 	source_path = "${local.repo_root}"
 	docker_file_path = "container/Dockerfile"
+}
+
+module "lambda_function" {
+  source = "terraform-aws-modules/lambda/aws"
+
+  function_name = local.aws_name
+  description   = "Simple Dynamic DNS"
+
+  create_package = false
+
+  image_uri    = module.docker_image.image_uri
+  package_type = "Image"
+  architectures = ["arm64"]
+
+  create_lambda_function_url = true
+
+  environment_variables = local.environment_variables
 }
