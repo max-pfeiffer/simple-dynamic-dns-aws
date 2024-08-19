@@ -18,16 +18,18 @@ If you want to cover this use case, this project is for you.
 
 ## Usage
 ### OpenTofu
-Deployment is fully automated with [OpenTofu](https://opentofu.org/). Add `.env` and `.secrets` files in `opentofu`
-directory following the examples then you are ready to go.
-In `opentofu` directory just do what you usually need to do:
+I like infrastructure-as-code, so deployment is fully automated with [OpenTofu](https://opentofu.org/). Add `.env` and
+`.secrets` files in `opentofu` directory following the examples then you are ready to go. In `opentofu` directory
+just do what you usually need to do:
 ```shell
 tofu init
 tofu plan
 tofu apply
 ```
-State is by default not persisted in this repository as this is a public one. So you probably want to fork/clone this
+State is by default isn't persisted in this repository as this is a public one. So you probably want to fork/clone this
 repository and tweak the `.gitignore` file.
+
+The Lambda function URL is provided as output. 
 
 ### Manual configuration
 1. Create a private container registry in AWS ECR
@@ -51,5 +53,6 @@ repository and tweak the `.gitignore` file.
       1. read secret from AWS Secrets Manager
       2. read and write DNS Records with AWS Route 53
 
-You are ready to go! Configure your Router to call the AWS Lambda function URL with query parameters like this:
+### Router configuration
+You are ready to go! Configure your router to call the AWS Lambda function URL with query parameters like this:
 `https://uwigefgf8437rgeydbea2q40jedbl.lambda-url.eu-central-1.on.aws/?domain=www.example.com&ip=123.45.56.78&client_id=linksys_router&token=78234rtgf438g7g43r4bfi3784fgh`
