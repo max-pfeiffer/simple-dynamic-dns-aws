@@ -18,16 +18,21 @@ If you want to cover this use case, this project is for you.
 
 ## Usage
 ### OpenTofu
-I like infrastructure-as-code, so deployment is fully automated with [OpenTofu](https://opentofu.org/). Add `.env` and
-`.secrets` files in `opentofu` directory following the examples then you are ready to go. In `opentofu` directory
+I like infrastructure-as-code, so deployment is fully automated with [OpenTofu](https://opentofu.org/).
+
+Prerequisites:
+* [AWS CLI installed](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and configured
+* [OpenTofu installed](https://opentofu.org/docs/intro/install/)
+
+Add `.env` and `.secrets` files in `opentofu` directory following the examples then you are ready to go. In `opentofu` directory
 just do what you usually need to do:
 ```shell
 tofu init
 tofu plan
 tofu apply
 ```
-State is by default isn't persisted in this repository as this is a public one. So you probably want to fork/clone this
-repository and tweak the `.gitignore` file.
+State isn't persisted in this repository as this is a public one. So you probably want to fork/clone this
+repository and tweak the [.gitignore](.gitignore) file.
 
 The Lambda function URL is provided as output. 
 
@@ -54,5 +59,5 @@ The Lambda function URL is provided as output.
       2. read and write DNS Records with AWS Route 53
 
 ### Router configuration
-You are ready to go! Configure your router to call the AWS Lambda function URL with query parameters like this:
+Configure your router to call the AWS Lambda function URL with query parameters like this:
 `https://uwigefgf8437rgeydbea2q40jedbl.lambda-url.eu-central-1.on.aws/?domain=www.example.com&ip=123.45.56.78&client_id=linksys_router&token=78234rtgf438g7g43r4bfi3784fgh`
