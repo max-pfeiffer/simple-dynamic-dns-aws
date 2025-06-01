@@ -17,7 +17,7 @@ pytest = "8.3.5"
 pytest-cov = "6.0.0"
 pytest-mock = "3.14.0"
 pytest-dotenv = "0.5.2"
-python-on-whales = "0.73.0"
+python-on-whales = "0.77.0"
 ruff = "0.11.2"
 
 [tool.ruff]
