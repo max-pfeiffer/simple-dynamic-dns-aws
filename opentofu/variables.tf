@@ -3,11 +3,6 @@ variable "client_id" {
   sensitive = true
 }
 
-variable "token" {
-  type      = string
-  sensitive = true
-}
-
 variable "environment_variables" {
   type      = map(string)
   sensitive = false

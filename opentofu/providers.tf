@@ -4,23 +4,23 @@ data "aws_caller_identity" "this" {}
 
 data "aws_ecr_authorization_token" "token" {}
 
-data "toml_file" "pyproject" {
-  input = file(local.pyproject_toml)
-}
-
 terraform {
   required_providers {
-   aws = {
-      source = "hashicorp/aws"
-      version = "6.0.0-beta3"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "6.0.0"
     }
     docker = {
-      source = "kreuzwerker/docker"
-      version = "3.6.1"
+      source  = "kreuzwerker/docker"
+      version = "3.6.2"
     }
     toml = {
       source  = "tobotimus/toml"
       version = "0.3.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.7.1"
     }
   }
 }
